@@ -1,0 +1,163 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    margin: 0;
+    padding-top: 60px;
+    overflow-y: auto;
+}
+
+.container {
+    text-align: center;
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    margin: 0 auto;
+    max-width: 800px;
+}
+
+.grid-container {
+    display: grid;
+    margin: 0px auto;
+    border: 2px solid black;
+    position: relative; /* Ensures proper positioning for child boxes */
+}
+
+.grid-cell {
+    width: 50px;
+    height: 50px;
+    border: 1px solid #ddd;
+    box-sizing: border-box;
+    position: relative;
+
+}
+
+.box {
+    position: absolute;
+    border: 2px solid #000; /* Remains unchanged */
+    background-color: rgba(0, 0, 255, 0.3); /* Lighter spawn color */
+    box-sizing: border-box;
+    transition: background-color 0.3s ease; /* Only transition the background */
+    margin: 0;
+}
+
+.highlight-dot {
+    position: absolute;
+    border-radius: 50%;
+    background-color: black;
+    pointer-events: none; /* So that the dot doesn't interfere with cell or box interactions */
+    border: 1px solid white; /* Optional: a white border to make the dot stand out */
+}
+
+.equation-bar {
+    margin-top: 20px;
+    padding: 10px;
+    background: rgb(219, 92, 92);
+    border-radius: 5px;
+    width: 300px;
+    color: whitesmoke; /*text color */
+}
+
+.buttons {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 20px auto;
+}
+
+.button-group {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 15px;
+    margin-top: 20px;
+}
+
+.buttons button {
+    -webkit-appearance: none;
+    -mox-appearance:none;
+    appearance:none;
+    padding: 10px 20px;
+    background-color: #3498db !important;
+    color: whitesmoke;
+    font-size: 16px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+    background: linear-gradient(145deg, #3498db, #2980b9);
+}
+
+.buttons button:hover {
+    background-color: #2980b9 !important;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+    transform: scale(1.05);
+}
+
+
+@media (max-width: 500px) {
+    .buttons button {
+        padding: 8px 15px;
+        font-size: 14px;
+    }
+}
+
+
+#controls {
+    display: flex;
+    flex-direction: column;
+    align-items: start; /* Ensures left alignment */
+}
+
+#lock-button {
+    margin-top: 2px; /* Ensures minimal spacing */
+}
+
+.box-label {
+    position: absolute;
+    top: 2px;  /* Adjust vertical spacing */
+    left: 4px; /* Adjust horizontal spacing */
+    font-size: 14px;
+    font-weight: bold;
+    color: black;
+    background: rgba(255, 255, 255, 0.7);
+    padding: 2px;
+    border-radius: 3px;
+}
+.box-info-line {
+    margin-top: 5px;
+    font-size: 14px;
+    color: #333;
+    font-family: Arial, sans-serif;
+    align-items: left;
+    text-align: left;
+}
+.grid-info-line {
+    margin-top: 5px;
+    font-size: 13px;
+    color: #333;
+    font-family: Arial, sans-serif;
+    text-align: left;
+}
+
+#grid {
+    margin:20px auto;
+    padding: 0; 
+    border: 2px solid black;
+    box-sizing: content-box;
+
+
+}
+.grid-cell, .box {
+
+box-sizing: border-box;
+
+}
+
+.condition-box {
+    border: 4px solid black !important;
+  }
+  
+
+  

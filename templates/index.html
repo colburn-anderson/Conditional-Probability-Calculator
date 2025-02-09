@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conditional Probability Calculator</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css')  }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Conditional Probability Calculator</h1>
+        
+        <div class="grid-input">
+            <label for="grid-size">Enter Grid Size (Rows x Columns):</label>
+            <input type="text" id="grid-size" placeholder="e.g., 4x4">
+            <button onclick="generateGrid()">Set Grid</button>
+        </div>
+        
+        <div id="grid-info"></div>
+
+        <div class="grid-container" id="grid"></div>
+        
+        <div class="box-input">
+            <label for="box-size">Enter Box Size (Width x Height):</label>
+            <input type="text" id="box-size" placeholder="e.g., 2x2">
+            <button onclick="addBox()">Add Box</button>
+        </div>
+        
+        <div class="box-info" id="box-info"></div>
+
+
+        <div class="equation-bar" id="equation-bar" contenteditable="true">Equation: </div>
+
+        <div class="buttons">
+            <div class="button-group">
+              <!-- Equation-building buttons -->
+              <button onclick="addToEquation('P')">P</button>
+              <button onclick="addToEquation('(')">(</button>
+              <button onclick="addToEquation(')')">)</button>
+              <button onclick="addToEquation('|')">|</button>
+              <button onclick="addToEquation('U')">U</button>
+              <button onclick="addToEquation('∩')">∩</button>
+              <button onclick="addToEquation('^c')">^c</button>
+              <button onclick="addToEquation('A')">A</button>
+              <button onclick="addToEquation('B')">B</button>
+              <button onclick="addToEquation('C')">C</button>
+            </div>
+          
+            <div class="button-group">
+              <!-- Action buttons -->
+              <button onclick="removeHighlights()">Remove Highlights</button>
+              <button onclick="restartProgram()">Clear Grid</button>
+              <button onclick="parseEquationAndHighlight()">Calculate</button>
+            </div>
+          </div>
+          
+    </div>
+    
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
