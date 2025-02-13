@@ -12,7 +12,8 @@ The Conditional Probability Calculator is designed to help you understand how di
 - You can create a grid (up to 15x15 cells) by entering a grid size.
 - You can add up to three dragable and rotatable boxes that represent events.
 - You can build probability equations using the interactive equation bar and provided buttons.
-- The calculator visually highlights the corresponding grid cells (with black dots) for the specified event and bolds the "given" box for conditional expressions.
+- The calculator visually highlights the corresponding grid cells (with black dots) for the specified event, displays the results of the equations, bolds the "given" box for conditional expressions.
+
 
 ---------------------------------------------------------------------------------------------------
 
