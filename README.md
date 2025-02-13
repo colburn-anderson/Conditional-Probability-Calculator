@@ -1,11 +1,22 @@
 # Conditional Probability Calculator
+
+## Table of Contents
+
+- [Overview](#overview)
+- [Features](#features)
+- [How To Use](#how-to-use-the-calculator)
+- [Technical Details](#technical-details)
+- [Contact](#contact)
+
+
+
 The Conditional Probability Calculator is an interactive, web-based tool that helps users visualize and compute conditional probabilities through a dynamic grid interface. No downloads or installations are requires--simply visit the website and start exploring!
 
 Try it [here](https://bit.ly/conditional_probability)
 
 --------------------------------------------------------------------------------------------------
 
-**Overview**
+## **Overview**
 
 The Conditional Probability Calculator is designed to help you understand how different ecents interact in a probability space. Using a grid-based interface:
 
@@ -14,26 +25,24 @@ The Conditional Probability Calculator is designed to help you understand how di
 - You can build probability equations using the interactive equation bar and provided buttons.
 - The calculator visually highlights the corresponding grid cells (with black dots) for the specified event, displays the results of the equations, bolds the "given" box for conditional expressions.
 
-
 ---------------------------------------------------------------------------------------------------
 
-**Features**
+## **Features**
 
-Dynamic Grid Generation:
+### Dynamic Grid Generation:
 
 - Create a grid with customizable dimensions to serve as the probability space.
 
-Box Creation and Manipulation:
+### Box Creation and Manipulation:
 
 - Add up to three boxes that represent different events. Boxes are dragged into the proper  position and snap to the grid when released. Boxes can be rotated using the 'r' key.
 
-Interactive Equation Bar:
+### Interactive Equation Bar:
 - Use the interactive equation bar to build probability expressions with buttons that insert operators and event labels.
 
 - The equation bar is prefilled with the fixed text "Equation: " so you only need to add your desired equation
 
-Visual Highlighting: 
-
+### Visual Highlighting: 
 
 - Single Event: Highlights all grid cells covered by a specific box.
   
@@ -43,9 +52,9 @@ Visual Highlighting:
 
 --------------------------------------------------------------------------------------------------
 
-**How to Use the Calculator**
+## **How to Use the Calculator**
 
-Generating the Grid
+### Generating the Grid
 1. Enter the Grid Size:
 	- In the 'box size' input field, type the dimensions of the box in the format width x height (e.g., 2x2).
 	- The maximum allowed box size is 15x15.
@@ -53,10 +62,10 @@ Generating the Grid
 	- Click the 'Set Grid' button.
 	- The grid will generate with the specified number of rows and columns. 
 
-Adding and Manipulating Boxes
+### Adding and Manipulating Boxes
 
 1. Enter Box Size:
-	- In the 'box size' input field, type the dimensions of the box in the format      width x height
+	- In the 'box size' input field, type the dimensions of the box in the format (width x height)
 
 2. Add a box (or three):
 	- Click the 'Add Box' button (or press 'Enter' in the 'box size' field.
@@ -67,11 +76,11 @@ Adding and Manipulating Boxes
     - With a box selected, press the 'r' key to rotate is 90°.
     - Boxes will snap to the grid for precise alignment.
 
-Building and Calculating Equations
+### Building and Calculating Equations
 
 1. Construct an Equation:
-    - Use the interactive equation bar at the top.
-    - You can click the provided buttons to build your equation.
+    - Use the interactive equation bar below the grid.
+    - You can click the provided buttons or just type to build your equation.
     - Try out different equations! A window will appear if an equation is not supported.
     - Supported formats include:
         - Single event: P(A)
@@ -97,7 +106,7 @@ Building and Calculating Equations
 
 --------------------------------------------------------------------------------------------------
 
-**Technical Details**
+## **Technical Details**
 
 Front-End:
 
@@ -117,7 +126,7 @@ Version Control:
 
 --------------------------------------------------------------------------------------------------
 
-**Contact**
+## **Contact**
 
 If you have questions or need support, please open an issue in the GitHub repository or contact me at anderson.colburn@apps.schoolcraft.edu.
    
