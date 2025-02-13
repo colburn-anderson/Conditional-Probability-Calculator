@@ -71,15 +71,21 @@ Building and Calculating Equations
 1. Construct an Equation:
     - Use the interactive equation bar at the top.
     - You can click the provided buttons to build your equation.
+    - Try out different equations! A window will appear if an equation is not supported.
     - Supported formats include:
         - Single event: P(A)
         - Intersection/Union: P(AUB)
         - Conditional: P(A|B)
+        - Compound Conditional: P(AUB|C)
+        - Complements: P(A^c)
+        - Compound Complements: P((AUB)^c)
+
 
 2. Calculate the results.
     - Click the 'Calculate' button.
     - The app will then highlight the grid cells corresponding to the event defined by your equation
-    - In conditional expressions, the "given" box (condition0 will have a bold border for clarity.
+    - In conditional expressions, the "given" box (condition) will have a bold border for clarity.
+    - The result will be displayed as (Highlighted Grid Cells/Total Grid Cells)
 
 3. Removing highlights
     - To clear the highlighted dots and reset any bolded condition boxes, click the 'Remove Highlights' button.
