@@ -54,15 +54,16 @@ The Conditional Probability Calculator is designed to help you understand how di
 
 ## **How to Use the Calculator**
 
-### Generating the Grid
+### Generate the Grid
 1. Enter the Grid Size:
 	- In the 'box size' input field, type the dimensions of the box in the format width x height (e.g., 2x2).
 	- The maximum allowed box size is 15x15.
 2. Set the Grid:
 	- Click the 'Set Grid' button.
-	- The grid will generate with the specified number of rows and columns. 
+	- The grid will generate with the specified number of rows and columns.
+	- The total area is displayed above the grid.
 
-### Adding and Manipulating Boxes
+### Add and Manipulate Your Boxes
 
 1. Enter Box Size:
 	- In the 'box size' input field, type the dimensions of the box in the format (width x height)
@@ -70,13 +71,14 @@ The Conditional Probability Calculator is designed to help you understand how di
 2. Add a box (or three):
 	- Click the 'Add Box' button (or press 'Enter' in the 'box size' field.
 	- Boxes are automatically labeled (A, B, or C) and assigned one of a set of colors that cycle through a predefined list.
+ 	- You will see the size of each box listed below the grid.
 
 3. Move and Rotate Boxes:
     - Click and drag boxes to reposition them on the grid.
     - With a box selected, press the 'r' key to rotate is 90°.
     - Boxes will snap to the grid for precise alignment.
 
-### Building and Calculating Equations
+### Build and Calculate Custom Equations
 
 1. Construct an Equation:
     - Use the interactive equation bar below the grid.
@@ -118,7 +120,7 @@ Back-End:
 
 Deployment: 
 
-- The project is hosted on PythonAnywhere, and its source code is maintained on GitHub.
+- The project is hosted on PythonAnywhere, and its source code is maintained remotely on GitHub.
 
 Version Control:
 
