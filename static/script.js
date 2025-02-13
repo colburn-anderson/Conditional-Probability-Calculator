@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", function() {
-    
+
     // Global Variables and Constants
     // ============================================================
     let gridSize = null;         // Will hold the current grid dimensions (rows and columns)
@@ -20,6 +20,116 @@ document.addEventListener("DOMContentLoaded", function() {
 
     // Helper Functions
 
+    let savedRange = null;       // Global variable to store the current selection
+
+    function saveSelection() {
+        const sel = window.getSelection();
+        if (sel.rangeCount > 0) {
+            savedRange = sel.getRangeAt(0);
+        }
+    }
+    function restoreSelection() {
+        if (savedRange) {
+            const sel = window.getSelection();
+            sel.removeAllRanges();
+            sel.addRange(savedRange);
+        }
+    }
+    // Attach events to save the caret position on mouseup and keyup
+    const eqInput = document.getElementById("equation-input");
+    const maxChars = 15;
+    eqInput.addEventListener("mouseup", saveSelection);
+    eqInput.addEventListener("keyup", saveSelection);
+
+    document.getElementById("equation-bar").addEventListener("click", function() { //Focus the attention on the equation bar when clicked
+        document.getElementById("equation-input").focus();
+      });
+
+
+    // Insert text at the current caret (restores saved selection first)
+    function insertTextAtCursor(text) {
+        restoreSelection();
+        const sel = window.getSelection();
+        if (sel.rangeCount) {
+            let range = sel.getRangeAt(0);
+            range.deleteContents();
+            const textNode = document.createTextNode(text);
+            range.insertNode(textNode);
+            // Move the caret immediately after the inserted text
+            range.setStartAfter(textNode);
+            range.collapse(true);
+            sel.removeAllRanges();
+            sel.addRange(range);
+            savedRange = range; // update savedRange
+        }
+    }
+    // Ensure handleEquationButton is attached to the global window:
+window.handleEquationButton = function(value, event) {
+    event.preventDefault();  // Prevent focus from being stolen
+    const eqInput = document.getElementById("equation-input");
+    eqInput.focus();
+    // If no saved selection, create one at the end of eqInput.
+    if (!savedRange) {
+        let range = document.createRange();
+        range.selectNodeContents(eqInput);
+        range.collapse(false);
+        savedRange = range;
+        const sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(range);
+    }
+    // Use a timeout to insert after any blur events settle
+    setTimeout(function() {
+        insertTextAtCursor(value);
+    }, 0);
+};
+
+// Attach event listeners to all buttons with class "eq-button"
+document.querySelectorAll(".eq-button").forEach(function(button) {
+    button.addEventListener("mousedown", function(event) {
+        // We can get the value from the data attribute
+        const value = button.getAttribute("data-value");
+        handleEquationButton(value, event);
+    });
+});
+
+
+
+// Prevent Enter key (we already have this, but keep it here for completeness)
+eqInput.addEventListener("keydown", function(event) {
+  if (event.key === "Enter") {
+    event.preventDefault();
+  }
+
+  // Allow control keys (backspace, delete, arrows, etc.)
+  const allowedKeys = ["Backspace", "Delete", "ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Home", "End", "Tab", "Control", "Alt", "Meta", "Shift"];
+
+  // If the current text is at or above max and the pressed key is not allowed, prevent input.
+  if (this.textContent.length >= maxChars && !allowedKeys.includes(event.key)) {
+    event.preventDefault();
+  }
+});
+
+// Also handle pasted text: trim the content if it exceeds the limit.
+eqInput.addEventListener("input", function(event) {
+  if (this.textContent.length > maxChars) {
+    this.textContent = this.textContent.substring(0, maxChars);
+
+    // Optionally, reposition the caret to the end:
+    let range = document.createRange();
+    range.selectNodeContents(this);
+    range.collapse(false);
+    let sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(range);
+
+    // Update savedRange if you're using selection-saving logic.
+    savedRange = range;
+  }
+});
+
+
+
     // getRandomColor() cycles through the defined colors (instead of "running out")
     function getRandomColor() {
         // Get the color at the current index.
@@ -37,7 +147,7 @@ document.addEventListener("DOMContentLoaded", function() {
         const gridContainer = document.getElementById("grid");
         gridContainer.style.position = "relative";
         gridContainer.innerHTML = "";  // Clear any previous grid cells
-    
+
         // Split the input ("4x4") into rows and columns.
         const [rows, cols] = gridInput.split("x").map(Number);
         if (!rows || !cols) {
@@ -50,43 +160,44 @@ document.addEventListener("DOMContentLoaded", function() {
             alert("Maximum grid size is 15x15");
             return;
         }
-    
+
         // If boxes are already present, clear the grid (restart program).
         if (boxes.length > 0) {
             restartProgram();  // This clears boxes, highlights, and resets the equation bar.
         }
-        
+
         gridSize = { rows, cols };
-    
-        // Set the dimensions of the grid container based on cellSize.
-        gridContainer.style.width = (cols * cellSize) + "px";
-        gridContainer.style.height = (rows * cellSize) + "px";
-        gridContainer.style.display = "grid";
-        gridContainer.style.gridTemplateColumns = `repeat(${cols}, $ cellSize}px)`;
-        gridContainer.style.gridTemplateRows = `repeat(${rows}, $ cellSize}px)`;
-        gridContainer.style.position = "relative";
-        
-        // Add a border around the entire grid.
-        gridContainer.style.border = "2px solid black";
-        
-        // Center the grid container in its parent.
-        gridContainer.style.margin = "20px auto";
-    
+
+        gridContainer.style.cssText =
+            "position: relative;" +
+            "width: " + (cols * cellSize) + "px;" +
+            "height: " + (rows * cellSize) + "px;" +
+            "display: grid;" +
+            "grid-template-columns: repeat(" + cols + ", " + cellSize + "px);" +
+            "grid-template-rows: repeat(" + rows + ", " + cellSize + "px);" +
+            "border: 2px solid black;" +
+            "margin: 20px auto;";
+
+console.log("grid-template-columns:", gridContainer.style.getPropertyValue("grid-template-columns"));
+    console.log("grid-template-rows:", gridContainer.style.getPropertyValue("grid-template-rows"));
+
+
+
         // Create each grid cell and assign row/column data attributes.
         for (let i = 0; i < rows * cols; i++) {
             const cell = document.createElement("div");
             cell.classList.add("grid-cell");
-    
+
             // Calculate 0-indexed row and column for the cell.
             let row = Math.floor(i / cols);
             let col = i % cols;
             cell.dataset.row = row;
             cell.dataset.col = col;
-    
+
             // Set cell dimensions.
             cell.style.width = cellSize + "px";
             cell.style.height = cellSize + "px";
-    
+
             // Optionally assign a dummy event value (used during testing)
             if (i % 2 === 0) {
                 cell.dataset.event = "A";
@@ -95,10 +206,10 @@ document.addEventListener("DOMContentLoaded", function() {
             } else {
                 cell.dataset.event = "A ∩ B";
             }
-    
+
             gridContainer.appendChild(cell);
         }
-    
+
         // Display grid information (e.g., "Total Grid Squares: 16 squares (4x4)").
         const totalSquares = rows * cols;
         const gridInfo = document.createElement("div");
@@ -108,62 +219,18 @@ document.addEventListener("DOMContentLoaded", function() {
         gridInfoContainer.innerHTML = "";
         gridInfoContainer.appendChild(gridInfo);
     };
-    
-    // Equation Bar Setup and Caret Handling
 
-    const prefix = "Equation: "; // Fixed prefix that should remain unaltered
-    const equationBar = document.getElementById("equation-bar");
 
-    // Ensure that the equation bar starts with the fixed prefix.
-    if (!equationBar.textContent.startsWith(prefix)) {
-        equationBar.textContent = prefix;
+    // Toggle info label when the info button is clicked
+  document.getElementById('info-button').addEventListener('click', function() {
+    var infoLabel = document.getElementById('info-label');
+    // Toggle display: if hidden, show it; if shown, hide it.
+    if (infoLabel.style.display === 'none' || infoLabel.style.display === '') {
+      infoLabel.style.display = 'block';
+    } else {
+      infoLabel.style.display = 'none';
     }
-
-    // When the equation bar receives focus, move the caret to the end.
-    equationBar.addEventListener("focus", function() {
-        placeCaretAtEnd(equationBar);
-    });
-
-    // When the user clicks inside the equation bar, if the caret is before the prefix, reposition it to the end.
-    equationBar.addEventListener("click", function() {
-        const sel = window.getSelection();
-        if (sel.rangeCount > 0) {
-            const range = sel.getRangeAt(0);
-            if (range.startOffset < prefix.length) {
-                placeCaretAtEnd(equationBar);
-            }
-        }
-    });
-
-    // On input, check that the text always starts with the fixed prefix.
-    // If the prefix has been altered or removed, restore it.
-    equationBar.addEventListener("input", function() {
-        if (!equationBar.textContent.startsWith(prefix)) {
-            let current = equationBar.textContent;
-            // Remove any characters before the prefix's length.
-            if (current.length >= prefix.length) {
-                current = current.substring(prefix.length);
-            } else {
-                current = "";
-            }
-            equationBar.textContent = prefix + current;
-            placeCaretAtEnd(equationBar);
-        }
-    });
-
-    // Helper function: Place caret at the end of a contenteditable element.
-    function placeCaretAtEnd(el) {
-        el.focus();
-        if (typeof window.getSelection != "undefined" &&
-            typeof document.createRange != "undefined") {
-            const range = document.createRange();
-            range.selectNodeContents(el);
-            range.collapse(false);
-            const sel = window.getSelection();
-            sel.removeAllRanges();
-            sel.addRange(range);
-        }
-    }
+  });
 
     // Box-Related Functions (Creation, Dragging, Rotation)
 
@@ -174,7 +241,7 @@ document.addEventListener("DOMContentLoaded", function() {
         const top = parseInt(box.style.top, 10);
         const widthCells = parseInt(box.dataset.width, 10);
         const heightCells = parseInt(box.dataset.height, 10);
-      
+
         // Calculate the starting column and row (0-indexed) using the cellSize.
         const startCol = Math.round(left / cellSize);
         const startRow = Math.round(top / cellSize);
@@ -193,7 +260,7 @@ document.addEventListener("DOMContentLoaded", function() {
             alert("Only 3 boxes allowed");
             return;
         }
-        
+
         const boxInput = document.getElementById("box-size").value;
         const [width, height] = boxInput.split("x").map(Number);
         if (!width || !height) {
@@ -206,44 +273,44 @@ document.addEventListener("DOMContentLoaded", function() {
             alert("Maximum box size is 15x15");
             return;
         }
-        
+
         // Create the box element.
         const box = document.createElement("div");
         box.classList.add("box");
-    
+
         // Set the box's dimensions (scaled by cellSize).
         box.style.width = `${width * cellSize}px`;
         box.style.height = `${height * cellSize}px`;
         box.dataset.width = width;
         box.dataset.height = height;
-    
+
         // Create and append the label (from boxLabels array) to the box.
         const label = document.createElement("div");
         label.classList.add("box-label");
         label.textContent = boxLabels[boxes.length];
         box.appendChild(label);
-    
+
         // Set the initial background color (cycling through boxColors) and position.
         box.style.background = getRandomColor();
         box.style.left = "0px";
         box.style.top = "0px";
-        
+
         // Append the box to the grid container.
         const gridContainer = document.getElementById("grid");
         gridContainer.appendChild(box);
-            
-        
+
+
         // Box Dragging Functionality
-       
+
         let isDragging = false;
         box.addEventListener("mousedown", function(event) {
             if (isLocked || isDragging) return;
             event.preventDefault();
-        
+
             // Mark this box as selected and highlight it.
             selectedBox = box;
             highlightSelectedBox(box);
-        
+
             // Get the grid container's position and adjust for its border.
             let containerRect = gridContainer.getBoundingClientRect();
             let containerStyle = window.getComputedStyle(gridContainer);
@@ -251,28 +318,28 @@ document.addEventListener("DOMContentLoaded", function() {
             let borderLeft = parseInt(containerStyle.borderLeftWidth, 10);
             let containerLeft = containerRect.left + window.pageXOffset + borderLeft;
             let containerTop = containerRect.top + window.pageYOffset + borderTop;
-        
+
             // Calculate the initial offset between the mouse and the box's top-left corner.
             let shiftX = event.pageX - containerLeft - box.offsetLeft;
             let shiftY = event.pageY - containerTop - box.offsetTop;
-        
+
             isDragging = true;
-        
+
             // Move the box as the mouse moves.
             function onMouseMove(event) {
                 let x = event.pageX - containerLeft - shiftX;
                 let y = event.pageY - containerTop - shiftY;
-        
+
                 // Ensure the box stays within the grid container.
                 x = Math.max(0, Math.min(x, gridContainer.clientWidth - box.offsetWidth));
                 y = Math.max(0, Math.min(y, gridContainer.clientHeight - box.offsetHeight));
-        
+
                 box.style.left = x + "px";
                 box.style.top = y + "px";
             }
-        
+
             document.addEventListener("mousemove", onMouseMove);
-        
+
             // When the mouse is released, snap the box to the grid and reset the border.
             function onMouseUp() {
                 document.removeEventListener("mousemove", onMouseMove);
@@ -280,38 +347,50 @@ document.addEventListener("DOMContentLoaded", function() {
                 snapToGrid(box);
                 box.style.border = "2px solid black";
             }
-        
+
             document.addEventListener("mouseup", onMouseUp, { once: true });
         });
-        
+
         // Display information about the box in the "box-info" area.
         const boxInfo = document.createElement("div");
         boxInfo.classList.add("box-info-line");
         boxInfo.textContent = `Box ${boxLabels[boxes.length]}: ${width * height} squares (${width}x${height})`;
         document.getElementById("box-info").appendChild(boxInfo);
-        
+
         // Add the box to the global boxes array.
         boxes.push(box);
     };
+    // Global keydown listener for rotation:
+    document.addEventListener("keydown", function(event) {
+    if (event.key === "r") {
+      console.log("Key 'r' pressed. Selected box:", selectedBox);
+      if (selectedBox && !isLocked) {
+        event.preventDefault();
+        rotateBox(selectedBox);
+      } else {
+        console.log("No box is selected or box movement is locked.");
+        }
+        }
+    }, true);
 
     // snapToGrid() adjusts a box's position so it aligns with the grid cells.
     function snapToGrid(box) {
         const gridContainer = document.getElementById("grid");
         let currentLeft = parseInt(box.style.left, 10);
         let currentTop = parseInt(box.style.top, 10);
-        
+
         // Round to the nearest multiple of cellSize.
         let x = Math.round(currentLeft / cellSize) * cellSize;
         let y = Math.round(currentTop / cellSize) * cellSize;
-        
+
         // Ensure the box remains within the grid.
         x = Math.max(0, Math.min(x, gridContainer.clientWidth - box.offsetWidth));
         y = Math.max(0, Math.min(y, gridContainer.clientHeight - box.offsetHeight));
-        
+
         box.style.left = `${x}px`;
         box.style.top = `${y}px`;
     }
-    
+
     // highlightSelectedBox() visually highlights a box when it is selected.
     function highlightSelectedBox(box) {
         // Reset borders for all boxes.
@@ -330,32 +409,7 @@ document.addEventListener("DOMContentLoaded", function() {
             rotateBox(selectedBox);
         }
     }, true);
-    
-    // rotateBox() swaps the width and height (effectively rotating the box 90°)
-    function rotateBox(box) {
-        const currentWidth = parseInt(box.dataset.width, 10);
-        const currentHeight = parseInt(box.dataset.height, 10);
-        
-        // Swap the dataset values.
-        box.dataset.width = currentHeight;
-        box.dataset.height = currentWidth;
-        
-        // Update the box's visual dimensions.
-        box.style.width = (currentHeight * cellSize) + "px";
-        box.style.height = (currentWidth * cellSize) + "px";
-        
-        // Snap the box to the grid after rotation.
-        snapToGrid(box);
-    }
 
-    // Equation Bar Manipulation Functions
-
-    // addToEquation() appends a character to the equation bar. Used by the equation-building buttons.
-    window.addToEquation = function(value) {
-        const equationBar = document.getElementById("equation-bar");
-        equationBar.textContent += value;
-    };
-    
     // Highlighting Functions
 
     // removeHighlights() clears all highlight dots and removes any bold condition-box styling.
@@ -370,9 +424,56 @@ document.addEventListener("DOMContentLoaded", function() {
         });
         console.log("Highlights removed.");
     }
+
+    // This function counts highlighted cells and updates the result label.
+function updateResultLabel() {
+    // Get all grid cells
+    const gridCells = document.querySelectorAll(".grid-cell");
+    let highlightedCount = 0;
+
+    // For each cell, check if it contains a highlight dot.
+    gridCells.forEach(cell => {
+        if (cell.querySelector(".highlight-dot")) {
+            highlightedCount++;
+        }
+    });
+
+    // Update the result label (displaying affected/total)
+    document.getElementById("result-label").textContent =
+        `Result: ${highlightedCount} / ${gridCells.length} grid cells highlighted`;
+}
+
+    // Returns true if the grid cell satisfies the condition for the given token.
+    // A token is a string like "A" or "A^c".
+    function cellSatisfiesToken(cell, token) {
+    // Determine whether this token is complemented.
+    const isComplement = token.endsWith("^c");
+    // Remove the "^c" if present to obtain the box letter.
+    const letter = isComplement ? token.slice(0, token.length - 2) : token;
+
+    // Get the corresponding box element.
+    const box = getBoxByLabel(letter);
+    if (!box) return false; // or alert the user
+
+    // Get the region of the box.
+    const region = getBoxRegion(box);
+
+    // Get the row and column of the current cell.
+    const row = parseInt(cell.dataset.row, 10);
+    const col = parseInt(cell.dataset.col, 10);
+
+    // Check if the cell lies within the box region.
+    const inRegion = (row >= region.startRow && row < region.endRow &&
+                      col >= region.startCol && col < region.endCol);
+
+    // For a complemented token, we return the opposite.
+    return isComplement ? !inRegion : inRegion;
+    }
+
+
     // Expose removeHighlights globally.
     window.removeHighlights = removeHighlights;
- 
+
     // highlightGridCellsForConditional() handles conditional expressions.
     // It highlights grid cells that fall within the intersection of the left event region and the condition region.
     // leftExp and condExp are strings that can be a single letter (e.g., "A") or a two-box expression (e.g., "AUB" or "A∩B").
@@ -380,7 +481,7 @@ document.addEventListener("DOMContentLoaded", function() {
         // Remove any whitespace from the expressions.
         leftExp = leftExp.replace(/\s/g, '');
         condExp = condExp.replace(/\s/g, '');
-        
+
         // Parse leftExp: determine if it contains a union or intersection operator.
         let leftOperator = null;
         let leftBox1Letter, leftBox2Letter;
@@ -395,7 +496,7 @@ document.addEventListener("DOMContentLoaded", function() {
         } else {
             leftBox1Letter = leftExp;
         }
-        
+
         // Parse condExp similarly.
         let condOperator = null;
         let condBox1Letter, condBox2Letter;
@@ -410,7 +511,7 @@ document.addEventListener("DOMContentLoaded", function() {
         } else {
             condBox1Letter = condExp;
         }
-        
+
         // Retrieve left-side box elements.
         let leftBoxes = [];
         const lb1 = getBoxByLabel(leftBox1Letter);
@@ -423,7 +524,7 @@ document.addEventListener("DOMContentLoaded", function() {
             alert("Left event box not found.");
             return;
         }
-        
+
         // Retrieve condition box elements.
         let condBoxes = [];
         const cb1 = getBoxByLabel(condBox1Letter);
@@ -436,7 +537,7 @@ document.addEventListener("DOMContentLoaded", function() {
             alert("Condition box not found.");
             return;
         }
-        
+
         // Compute the region for the left event.
         let leftRegion;
         if (leftBoxes.length === 1) {
@@ -460,7 +561,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 };
             }
         }
-        
+
         // Compute the region for the condition.
         let condRegion;
         if (condBoxes.length === 1) {
@@ -484,7 +585,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 };
             }
         }
-        
+
         // For each grid cell, if it lies within both the left event region and the condition region, add a highlight dot.
         document.querySelectorAll(".grid-cell").forEach(cell => {
             const row = parseInt(cell.dataset.row, 10);
@@ -496,7 +597,7 @@ document.addEventListener("DOMContentLoaded", function() {
             if (inLeft && inCond) {
                 const dot = document.createElement("div");
                 dot.classList.add("highlight-dot");
-                const diameter = cellSize * 0.6;
+                const diameter = cellSize * 0.4;
                 dot.style.width = diameter + "px";
                 dot.style.height = diameter + "px";
                 dot.style.top = "50%";
@@ -507,38 +608,86 @@ document.addEventListener("DOMContentLoaded", function() {
             }
         });
     }
-    
-    // highlightGridCellsForUnion() adds a dot in every cell that lies in the union of two box regions.
-    function highlightGridCellsForUnion(box1, box2, highlightColor = "yellow") {
-        // Compute the grid region for both boxes.
-        const region1 = getBoxRegion(box1);
-        const region2 = getBoxRegion(box2);
-      
-        // Loop over all grid cells.
-        document.querySelectorAll(".grid-cell").forEach(cell => {
-            const row = parseInt(cell.dataset.row, 10);
-            const col = parseInt(cell.dataset.col, 10);
-            // Check if the cell is in either region.
-            const inRegion1 = (row >= region1.startRow && row < region1.endRow &&
-                               col >= region1.startCol && col < region1.endCol);
-            const inRegion2 = (row >= region2.startRow && row < region2.endRow &&
-                               col >= region2.startCol && col < region2.endCol);
-            if (inRegion1 || inRegion2) {
-                const dot = document.createElement("div");
-                dot.classList.add("highlight-dot");
-                const diameter = cellSize * 0.6;
-                dot.style.width = diameter + "px";
-                dot.style.height = diameter + "px";
-                dot.style.top = "50%";
-                dot.style.left = "50%";
-                dot.style.transform = "translate(-50%, -50%)";
-                // Always force the dot to be black.
-                dot.style.backgroundColor = "black";
-                cell.appendChild(dot);
-            }
-        });
-    }
-    
+
+    // token1 and token2 are strings such as "A", "B^c", etc.
+// operator is expected to be union ("U" or "∪") or intersection ("∩" or "|").
+function highlightGridCellsForTwoTokens(token1, token2, operator) {
+    document.querySelectorAll(".grid-cell").forEach(cell => {
+        let conditionMet = false;
+        if (operator === "U" || operator === "∪") {
+            // For union: highlight if the cell satisfies token1 OR token2.
+            conditionMet = cellSatisfiesToken(cell, token1) || cellSatisfiesToken(cell, token2);
+        } else if (operator === "∩" || operator === "|") {
+            // For intersection: highlight if the cell satisfies both tokens.
+            conditionMet = cellSatisfiesToken(cell, token1) && cellSatisfiesToken(cell, token2);
+        }
+
+        if (conditionMet) {
+            // Create the highlight dot.
+            const dot = document.createElement("div");
+            dot.classList.add("highlight-dot");
+            const diameter = cellSize * 0.4;  // or adjust as desired
+            dot.style.width = diameter + "px";
+            dot.style.height = diameter + "px";
+            dot.style.top = "50%";
+            dot.style.left = "50%";
+            dot.style.transform = "translate(-50%, -50%)";
+            dot.style.zIndex = '2';
+            cell.appendChild(dot);
+        }
+    });
+}
+
+// This function is used for expressions like P((AUB)^c)
+function highlightGridCellsForCompoundComplement(token1, token2, operator) {
+    document.querySelectorAll(".grid-cell").forEach(cell => {
+        let compoundCondition = false;
+        if (operator === "U" || operator === "∪") {
+            // For union, the cell satisfies the union if it satisfies token1 OR token2.
+            compoundCondition = cellSatisfiesToken(cell, token1) || cellSatisfiesToken(cell, token2);
+        } else if (operator === "∩" || operator === "|") {
+            // For intersection, the cell satisfies if it satisfies both.
+            compoundCondition = cellSatisfiesToken(cell, token1) && cellSatisfiesToken(cell, token2);
+        }
+        // For the compound complement, we highlight the cell if it does NOT satisfy the compound condition.
+        if (!compoundCondition) {
+            const dot = document.createElement("div");
+            dot.classList.add("highlight-dot");
+            const diameter = cellSize * 0.4; // or adjust as needed
+            dot.style.width = diameter + "px";
+            dot.style.height = diameter + "px";
+            dot.style.top = "50%";
+            dot.style.left = "50%";
+            dot.style.transform = "translate(-50%, -50%)";
+            dot.style.zIndex = '2';
+            cell.appendChild(dot);
+        }
+    });
+}
+
+function highlightGridCellsForCompoundConditional(tokens, operator, conditionToken) {
+    document.querySelectorAll(".grid-cell").forEach(cell => {
+        // Evaluate the compound left expression.
+        let leftCondition = evaluateCompoundCondition(cell, tokens, operator);
+        // Evaluate the condition token (using your existing cellSatisfiesToken function).
+        let condCondition = cellSatisfiesToken(cell, conditionToken);
+        // For conditional expressions, highlight only if both the left expression and the condition are true.
+        if (leftCondition && condCondition) {
+            const dot = document.createElement("div");
+            dot.classList.add("highlight-dot");
+            const diameter = cellSize * 0.4;  // adjust as needed
+            dot.style.width = diameter + "px";
+            dot.style.height = diameter + "px";
+            dot.style.top = "50%";
+            dot.style.left = "50%";
+            dot.style.transform = "translate(-50%, -50%)";
+            dot.style.zIndex = '2';
+            cell.appendChild(dot);
+        }
+    });
+}
+
+
     // Allow grid generation on Enter key for the grid-size input.
     document.getElementById("grid-size").addEventListener("keypress", function(event) {
         if (event.key === "Enter") {
@@ -546,16 +695,16 @@ document.addEventListener("DOMContentLoaded", function() {
             this.blur();
         }
     });
-    
+
     // Box Creation and Dragging (continued)
 
     // addBox() is already defined above.
-    
+
     // Snap Box to Grid and Box Selection Highlighting (continued)
 
     // snapToGrid() and highlightSelectedBox() are already defined above.
-    
-    
+
+
     // Global Keydown for Box Rotation (when "r" is pressed)
 
     document.addEventListener("keydown", function(event) {
@@ -564,32 +713,60 @@ document.addEventListener("DOMContentLoaded", function() {
             rotateBox(selectedBox);
         }
     }, true);
-    
+
     // rotateBox() rotates a box by swapping its width and height.
     function rotateBox(box) {
-        const currentWidth = parseInt(box.dataset.width, 10);
-        const currentHeight = parseInt(box.dataset.height, 10);
+        // Get the grid container and its full dimensions.
+        const gridContainer = document.getElementById("grid");
+        const gridWidth = gridContainer.offsetWidth;
+        const gridHeight = gridContainer.offsetHeight;
         
-        // Swap width and height in the dataset.
+        // Read the box's current dimensions (in grid cells) from its dataset.
+        let currentWidth = parseInt(box.dataset.width, 10);
+        let currentHeight = parseInt(box.dataset.height, 10);
+        
+        // Swap the dimensions in the dataset (rotating the box).
         box.dataset.width = currentHeight;
         box.dataset.height = currentWidth;
         
-        // Update the visual dimensions accordingly.
-        box.style.width = (currentHeight * cellSize) + "px";
-        box.style.height = (currentWidth * cellSize) + "px";
+        // Calculate the new pixel dimensions.
+        let newWidth = currentHeight * cellSize;
+        let newHeight = currentWidth * cellSize;
         
-        // Snap the box to the grid after rotation.
+        // Get the current position (top-left) of the box.
+        let left = parseFloat(box.style.left) || 0;
+        let top = parseFloat(box.style.top) || 0;
+        
+        // Clamp the left position so that left + newWidth does not exceed gridWidth.
+        left = Math.min(left, gridWidth - newWidth);
+        // Clamp the top position so that top + newHeight does not exceed gridHeight.
+        top = Math.min(top, gridHeight - newHeight);
+        
+        // Ensure left and top are not negative.
+        left = Math.max(0, left);
+        top = Math.max(0, top);
+        
+        // Update the box's dimensions and position.
+        box.style.width = newWidth + "px";
+        box.style.height = newHeight + "px";
+        box.style.left = left + "px";
+        box.style.top = top + "px";
+        
         snapToGrid(box);
-    }
-    
+        
+        console.log("Rotated box. New dimensions (px):", newWidth, "x", newHeight, "at position:", left, top);
+      }
+      
+      
+
     // Equation Bar Manipulation
 
     // addToEquation() appends a value (character) to the equation bar.
     window.addToEquation = function(value) {
-        const equationBar = document.getElementById("equation-bar");
+        const equationBar = document.getElementById("equation-input");
         equationBar.textContent += value;
     };
-    
+
     // Remove Highlights and Clear Grid Functions
 
     // removeHighlights() removes all highlight dots and any bold condition-box styling.
@@ -602,100 +779,252 @@ document.addEventListener("DOMContentLoaded", function() {
         document.querySelectorAll(".condition-box").forEach(box => {
             box.classList.remove("condition-box");
         });
+
+        document.getElementById("result-label").textContent = ""; //Clear the result label
         console.log("Highlights removed.");
     }
     // Expose removeHighlights globally.
     window.removeHighlights = removeHighlights;
- 
+
+    function evaluateCompoundCondition(cell, tokens, operator) {
+        // tokens is an array like ["B", "U", "C"] for "BUC".
+        if (operator === "U" || operator === "∪") {
+            // For union: the cell satisfies if it meets at least one token.
+            for (let i = 0; i < tokens.length; i += 2) {
+                if (cellSatisfiesToken(cell, tokens[i])) {
+                    return true;
+                }
+            }
+            return false;
+        } else if (operator === "∩" || operator === "|" || operator === "n") {
+            // For intersection: the cell must satisfy every token.
+            for (let i = 0; i < tokens.length; i += 2) {
+                if (!cellSatisfiesToken(cell, tokens[i])) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        return false;
+    }
+
+
     // restartProgram() clears the equation bar, removes highlights, and deletes all boxes from the grid.
     window.restartProgram = function() {
-        const equationBar = document.getElementById("equation-bar");
-        equationBar.textContent = "Equation:";  // Reset the equation bar
-    
+        document.getElementById("equation-input").textContent = "";
+
+
         removeHighlights();  // Remove any highlight dots and condition box styles
-    
+
         // Remove all boxes from the grid.
         const gridContainer = document.getElementById("grid");
         const boxesInGrid = gridContainer.querySelectorAll(".box");
         boxesInGrid.forEach(box => box.remove());
-    
+
         // Clear the box information display.
         const boxInfoContainer = document.getElementById("box-info");
         if (boxInfoContainer) {
             boxInfoContainer.innerHTML = "";
         }
-    
+
         // Reset global variables for boxes.
         boxes = [];
         selectedBox = null;
-    
+
+        //ensure the label result is cleared
+        document.getElementById("result-label").textContent = "";
+
         console.log("Grid cleared and program restarted.");
     };
-    
+
     // Equation Parsing and Highlighting (Main Calculation Function)
-    
+
     // parseEquationAndHighlight() handles various equation formats, including conditional expressions and two-box expressions.
     window.parseEquationAndHighlight = function() {
         console.log("Calculate button pressed");
-      
-        const equationBar = document.getElementById("equation-bar");
-        let equation = equationBar.textContent.trim();
-        // Remove the prefix "Equation:" if present.
-        if (equation.startsWith("Equation:")) {
-            equation = equation.replace("Equation:", "").trim();
-        }
-        // Remove all whitespace from the equation.
+        let equation = document.getElementById("equation-input").textContent.trim();
+        // Remove any whitespace.
         equation = equation.replace(/\s/g, '');
         console.log("Parsed equation:", equation);
-      
-        // Clear any previous highlights.
         removeHighlights();
-      
-        // Check for conditional expressions that allow the condition to be one or two boxes.
-        // The regex matches patterns like P(A|B), P(AUB|C), or P(A∩B|B∩C)
-        const condRegex = /^P\(([^|]+)\|(([ABC](?:[∪U∩\|][ABC])?))\)$/;
-        const condMatches = equation.match(condRegex);
-        if (condMatches) {
-            const leftExp = condMatches[1];  // Left side expression (e.g., "A" or "AUB" or "A∩B")
-            const condExp = condMatches[2];    // Condition expression (e.g., "B" or "BUC" or "B∩C")
-            // Highlight grid cells that are in the intersection of the left event region and the condition region.
-            highlightGridCellsForConditional(leftExp, condExp);
-            // Bolden the perimeter of each box used in the condition expression.
-            for (let i = 0; i < condExp.length; i++) {
-                let ch = condExp[i];
-                if (ch === "U" || ch === "∪" || ch === "∩" || ch === "|") continue;
-                const condBox = getBoxByLabel(ch);
-                if (condBox) {
-                    condBox.classList.add("condition-box");
+
+        // Branch 1: Simple conditional e.g., P(A|B)
+        const simpleCondRegex = /^P\(([ABC](?:\^c)?)\|([ABC](?:\^c)?)\)$/;
+        let match = equation.match(simpleCondRegex);
+        if (match) {
+            const leftToken = match[1];
+            const rightToken = match[2];
+            document.querySelectorAll(".grid-cell").forEach(cell => {
+                if (cellSatisfiesToken(cell, leftToken) && cellSatisfiesToken(cell, rightToken)) {
+                    const dot = document.createElement("div");
+                    dot.classList.add("highlight-dot");
+                    const diameter = cellSize * 0.4;
+                    dot.style.width = diameter + "px";
+                    dot.style.height = diameter + "px";
+                    dot.style.top = "50%";
+                    dot.style.left = "50%";
+                    dot.style.transform = "translate(-50%, -50%)";
+                    dot.style.zIndex = '2';
+                    cell.appendChild(dot);
                 }
-            }
+            });
+            // Bolden the condition box
+        const conditionBox = getBoxByLabel(rightToken);
+        if (conditionBox) {
+            conditionBox.classList.add("condition-box");
+        }
+        updateResultLabel();
+        return;
+        }
+
+        // Branch 2: Compound condition on the right, e.g., P(A|BUC)
+        const compoundRightRegex = /^P\(([ABC](?:\^c)?)\|((?:[ABC](?:\^c)?(?:[U∪∩\|n][ABC](?:\^c)?)+))\)$/;
+        match = equation.match(compoundRightRegex);
+        if (match) {
+            const leftToken = match[1];
+            const conditionExpr = match[2];
+            let condTokens = conditionExpr.split(/([U∪∩\|n])/);
+            const mainOperator = condTokens[1];
+            document.querySelectorAll(".grid-cell").forEach(cell => {
+                const leftOK = cellSatisfiesToken(cell, leftToken);
+                const condOK = evaluateCompoundCondition(cell, condTokens, mainOperator);
+                if (leftOK && condOK) {
+                    const dot = document.createElement("div");
+                    dot.classList.add("highlight-dot");
+                    const diameter = cellSize * 0.4;
+                    dot.style.width = diameter + "px";
+                    dot.style.height = diameter + "px";
+                    dot.style.top = "50%";
+                    dot.style.left = "50%";
+                    dot.style.transform = "translate(-50%, -50%)";
+                    dot.style.zIndex = '2';
+                    cell.appendChild(dot);
+                }
+            });
+            // Bolden each condition box in the compound condition.
+            // condTokens should be like ["B", "U", "C"] (ignoring operators)
+            condTokens.forEach(token => {
+                if (/^[ABC](?:\^c)?$/.test(token)) {
+                    const box = getBoxByLabel(token);
+                    if (box) {
+                        box.classList.add("condition-box");
+                    }
+                }
+            });
+            updateResultLabel();
             return;
         }
-      
-        // If not conditional, check for two-box expressions without a condition.
-        const regex = /^P\(([ABC])([∩\|U∪])([ABC])\)$/;
-        const matches = equation.match(regex);
-        if (matches) {
-            let box1Letter = matches[1];
-            let operator = matches[2];
-            let box2Letter = matches[3];
-            const box1 = getBoxByLabel(box1Letter);
-            const box2 = getBoxByLabel(box2Letter);
-            if (!box1 || !box2) {
-                alert("Box " + box1Letter + " and/or " + box2Letter + " not found!");
-                return;
-            }
-            if (operator === "∩" || operator === "|") {
-                highlightGridCellsForIntersection(box1, box2);
-            } else if (operator === "U" || operator === "∪") {
-                highlightGridCellsForUnion(box1, box2);
-            } else {
-                alert("Unsupported operator: " + operator);
-            }
+
+        // Branch 3: Single token, e.g., P(A)
+        const singleTokenRegex = /^P\(([ABC](?:\^c)?)\)$/;
+        match = equation.match(singleTokenRegex);
+        if (match) {
+            const token = match[1];
+            document.querySelectorAll(".grid-cell").forEach(cell => {
+                if (cellSatisfiesToken(cell, token)) {
+                    const dot = document.createElement("div");
+                    dot.classList.add("highlight-dot");
+                    const diameter = cellSize * 0.4;
+                    dot.style.width = diameter + "px";
+                    dot.style.height = diameter + "px";
+                    dot.style.top = "50%";
+                    dot.style.left = "50%";
+                    dot.style.transform = "translate(-50%, -50%)";
+                    dot.style.zIndex = '2';
+                    cell.appendChild(dot);
+                }
+            });
+            updateResultLabel();
             return;
         }
-      
-        // handle single-box expressions such as P(A), P(B), or P(C).
+
+        // Branch 4: Compound complement, e.g., P((AUB)^c)
+        const compoundComplementRegex = /^P\(\(([ABC](?:\^c)?)([U∪∩\|])([ABC](?:\^c)?)\)\^c\)$/;
+        match = equation.match(compoundComplementRegex);
+        if (match) {
+            const token1 = match[1];
+            const operator = match[2];
+            const token2 = match[3];
+            highlightGridCellsForCompoundComplement(token1, token2, operator);
+            updateResultLabel();
+            return;
+        }
+
+        // Branch 5: Compound left with condition, e.g., P(AnB|C) or P(A∩B|C)
+        const compoundLeftRegex = /^P\(([ABC](?:\^c)?(?:[U∪∩\|n][ABC](?:\^c)?)+)\|([ABC](?:\^c)?)\)$/;
+        match = equation.match(compoundLeftRegex);
+        if (match) {
+            const leftExpression = match[1];
+            const conditionToken = match[2];
+            let tokens = leftExpression.split(/([U∪∩\|n])/);
+            const mainOperator = tokens[1];
+            highlightGridCellsForCompoundConditional(tokens, mainOperator, conditionToken);
+            const conditionBox = getBoxByLabel(conditionToken);
+        if (conditionBox) {
+            conditionBox.classList.add("condition-box");
+        }
+        updateResultLabel();
+        return;
+        }
+
+        // Branch 6: Compound Expression (no condition), e.g., P(AUC) or P(AnC)
+    const compoundRegex = /^P\(([ABC](?:\^c)?(?:[U∪∩\|n][ABC](?:\^c)?)+)\)$/;
+    match = equation.match(compoundRegex);
+    if (match) {
+        // The entire compound expression (like "AUC" or "A∩C") is in match[1]
+        let compoundExpression = match[1];
+        // Split the expression using the operator as delimiter.
+        let tokens = compoundExpression.split(/([U∪∩\|n])/);
+        if (tokens.length === 3) {
+            // Exactly two tokens.
+            const token1 = tokens[0];
+            const operator = tokens[1];
+            const token2 = tokens[2];
+            document.querySelectorAll(".grid-cell").forEach(cell => {
+                let conditionMet = false;
+                if (operator === "U" || operator === "∪") {
+                    conditionMet = cellSatisfiesToken(cell, token1) || cellSatisfiesToken(cell, token2);
+                } else if (operator === "∩" || operator === "|" || operator === "n") {
+                    conditionMet = cellSatisfiesToken(cell, token1) && cellSatisfiesToken(cell, token2);
+                }
+                if (conditionMet) {
+                    const dot = document.createElement("div");
+                    dot.classList.add("highlight-dot");
+                    const diameter = cellSize * 0.4;
+                    dot.style.width = diameter + "px";
+                    dot.style.height = diameter + "px";
+                    dot.style.top = "50%";
+                    dot.style.left = "50%";
+                    dot.style.transform = "translate(-50%, -50%)";
+                    dot.style.zIndex = '2';
+                    cell.appendChild(dot);
+                }
+            });
+            updateResultLabel();
+            return;
+        } else {
+            // More than two tokens—handle using our compound evaluation helper.
+            const mainOperator = tokens[1];
+            document.querySelectorAll(".grid-cell").forEach(cell => {
+                if (evaluateCompoundCondition(cell, tokens, mainOperator)) {
+                    const dot = document.createElement("div");
+                    dot.classList.add("highlight-dot");
+                    const diameter = cellSize * 0.4;
+                    dot.style.width = diameter + "px";
+                    dot.style.height = diameter + "px";
+                    dot.style.top = "50%";
+                    dot.style.left = "50%";
+                    dot.style.transform = "translate(-50%, -50%)";
+                    dot.style.zIndex = '2';
+                    cell.appendChild(dot);
+                }
+            });
+            updateResultLabel();
+            return;
+        }
+    }
+
+        // Branch 7: Fallback for known simple expressions like P(A), P(B), P(C)
         if (equation === "P(A)" || equation === "P(B)" || equation === "P(C)") {
             let letter = equation.charAt(2);
             const box = getBoxByLabel(letter);
@@ -704,15 +1033,18 @@ document.addEventListener("DOMContentLoaded", function() {
             } else {
                 alert("Box " + letter + " not found!");
             }
+            updateResultLabel();
             return;
         }
-      
-        // If no supported equation format is matched, alert the user.
+
+        // If no supported format is matched:
         alert("Unsupported equation: " + equation);
     };
-    
+
+
+
     // Basic Highlighting Functions for Single Box and Intersection
-    
+
     // highlightGridCellsForBox() adds a black dot to every grid cell covered by the box.
     function highlightGridCellsForBox(box) {
         // Determine the box's grid region based on its position and dimensions.
@@ -720,15 +1052,15 @@ document.addEventListener("DOMContentLoaded", function() {
         const top = parseInt(box.style.top, 10);
         const widthCells = parseInt(box.dataset.width, 10);
         const heightCells = parseInt(box.dataset.height, 10);
-      
+
         // Compute the starting (row, col) indices.
         const startCol = Math.round(left / cellSize);
         const startRow = Math.round(top / cellSize);
-      
+
         // Define the ending indices (non-inclusive).
         const endCol = startCol + widthCells;
         const endRow = startRow + heightCells;
-      
+
         // Loop over each grid cell in the region and add a dot.
         document.querySelectorAll(".grid-cell").forEach(cell => {
             const row = parseInt(cell.dataset.row, 10);
@@ -736,8 +1068,8 @@ document.addEventListener("DOMContentLoaded", function() {
             if (row >= startRow && row < endRow && col >= startCol && col < endCol) {
                 const dot = document.createElement("div");
                 dot.classList.add("highlight-dot");
-                // Set the dot's diameter to 60% of cellSize.
-                const diameter = cellSize * 0.6;
+                // Set the dot's diameter to 40% of cellSize.
+                const diameter = cellSize * 0.4;
                 dot.style.width = diameter + "px";
                 dot.style.height = diameter + "px";
                 // Center the dot in the grid cell.
@@ -750,7 +1082,7 @@ document.addEventListener("DOMContentLoaded", function() {
             }
         });
     }
-    
+
     // highlightGridCellsForIntersection() highlights the overlapping region between two boxes.
     function highlightGridCellsForIntersection(box1, box2, highlightColor = "green") {
         // Compute the grid region for box1.
@@ -762,7 +1094,7 @@ document.addEventListener("DOMContentLoaded", function() {
         const startRow1 = Math.round(top1 / cellSize);
         const endCol1 = startCol1 + widthCells1;
         const endRow1 = startRow1 + heightCells1;
-      
+
         // Compute the grid region for box2.
         const left2 = parseInt(box2.style.left, 10);
         const top2 = parseInt(box2.style.top, 10);
@@ -772,19 +1104,19 @@ document.addEventListener("DOMContentLoaded", function() {
         const startRow2 = Math.round(top2 / cellSize);
         const endCol2 = startCol2 + widthCells2;
         const endRow2 = startRow2 + heightCells2;
-      
+
         // Determine the overlapping region.
         const overlapStartCol = Math.max(startCol1, startCol2);
         const overlapEndCol = Math.min(endCol1, endCol2);
         const overlapStartRow = Math.max(startRow1, startRow2);
         const overlapEndRow = Math.min(endRow1, endRow2);
-      
+
         // If there is no overlap, alert the user.
         if (overlapStartCol >= overlapEndCol || overlapStartRow >= overlapEndRow) {
             alert("Boxes do not overlap!");
             return;
         }
-      
+
         // Loop over grid cells in the overlapping region and add a dot.
         document.querySelectorAll(".grid-cell").forEach(cell => {
             const row = parseInt(cell.dataset.row, 10);
@@ -793,7 +1125,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 col >= overlapStartCol && col < overlapEndCol) {
                 const dot = document.createElement("div");
                 dot.classList.add("highlight-dot");
-                const diameter = cellSize * 0.6;
+                const diameter = cellSize * 0.4;
                 dot.style.width = diameter + "px";
                 dot.style.height = diameter + "px";
                 dot.style.top = "50%";
@@ -804,7 +1136,7 @@ document.addEventListener("DOMContentLoaded", function() {
             }
         });
     }
-    
+
     // getBoxByLabel() returns the box element whose label matches the given letter.
     function getBoxByLabel(label) {
         const boxes = document.querySelectorAll('.box');
@@ -816,12 +1148,13 @@ document.addEventListener("DOMContentLoaded", function() {
         }
         return null;
     }
-    
+
     // Event Listener for Box-Size Input: Allow "Enter" to add a box.
-    document.getElementById("box-size").addEventListener("keypress", function(event) {
+    document.getElementById("box-size").addEventListener("keydown", function(event) {
         if (event.key === "Enter") {
             event.preventDefault();
             addBox();
         }
     });
+
 });

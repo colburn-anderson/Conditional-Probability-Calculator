@@ -46,7 +46,6 @@ body {
     border-radius: 50%;
     background-color: black;
     pointer-events: none; /* So that the dot doesn't interfere with cell or box interactions */
-    border: 1px solid white; /* Optional: a white border to make the dot stand out */
 }
 
 .equation-bar {
@@ -56,6 +55,24 @@ body {
     border-radius: 5px;
     width: 300px;
     color: whitesmoke; /*text color */
+    font-size: 16px;
+    display: flex;
+    align-items: right;
+    cursor: text;
+}
+.equation-prefix{
+    font-weight: bold;
+    align-items: right;
+    margin-right: 4px;
+}
+
+#equation-input {
+    outline: none;
+    align-items: left;
+    margin-left: 0px;
+    flex-grow: 0;
+    max-height: 100px;
+    pointer-events: auto;
 }
 
 .buttons {
@@ -156,8 +173,37 @@ box-sizing: border-box;
 }
 
 .condition-box {
-    border: 4px solid black !important;
+    border: 3px solid black !important;
   }
   
-
+/* Info Button Styling */
+.info-btn {
+    border: 2px solid #3498db;
+    background-color: white;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    font-weight: bold;
+    color: #3498db;
+    cursor: pointer;
+    position: fixed;  /* Position it in a fixed spot */
+    top: 20px;        /* Adjust as needed */
+    right: 20px;      /* Adjust as needed */
+    z-index: 1000;    /* Ensure it stays on top */
+  }
+  
+  /* Info Label Styling */
+  .info-label {
+    background-color: #f9f9f9;
+    border: 1px solid #ccc;
+    padding: 10px;
+    border-radius: 5px;
+    position: fixed;
+    top: 60px;        /* Below the info button */
+    right: 20px;      /* Align with the button */
+    z-index: 1001;    /* Above other elements */
+    box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.2);
+  }
+  
+  
   

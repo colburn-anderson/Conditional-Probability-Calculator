@@ -7,6 +7,15 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css')  }}">
 </head>
 <body>
+
+  <!-- Info Button and Info Label -->
+  <button id="info-button" class="info-btn">i</button>
+  <div id="info-label" class="info-label" style="display: none;">
+    For more information on how to use this calculator click
+    <a href="https://github.com/colburn-anderson/Conditional-Probability-Calculator" target="_blank">here</a>
+    and scroll down to read the official READ.ME
+  </div>
+
     <div class="container">
         <h1>Conditional Probability Calculator</h1>
         
@@ -29,21 +38,29 @@
         <div class="box-info" id="box-info"></div>
 
 
-        <div class="equation-bar" id="equation-bar" contenteditable="true">Equation: </div>
+        <div class="equation-bar" id="equation-bar">
+          <span class="equation-prefix">Equation:</span><span id="equation-input" contenteditable="true"></span>
+        </div>
+        
+
+        <div id="result-label" style="margin-top: 10px; font-weight: bold;"></div>
 
         <div class="buttons">
             <div class="button-group">
               <!-- Equation-building buttons -->
-              <button onclick="addToEquation('P')">P</button>
-              <button onclick="addToEquation('(')">(</button>
-              <button onclick="addToEquation(')')">)</button>
-              <button onclick="addToEquation('|')">|</button>
-              <button onclick="addToEquation('U')">U</button>
-              <button onclick="addToEquation('∩')">∩</button>
-              <button onclick="addToEquation('^c')">^c</button>
-              <button onclick="addToEquation('A')">A</button>
-              <button onclick="addToEquation('B')">B</button>
-              <button onclick="addToEquation('C')">C</button>
+              <div class="button-group">
+                <button type="button" tabindex="-1" onmousedown="handleEquationButton('P', event)">P</button>
+                <button type="button" tabindex="-1" onmousedown="handleEquationButton('(', event)">(</button>
+                <button type="button" tabindex="-1" onmousedown="handleEquationButton(')', event)">)</button>
+                <button type="button" tabindex="-1" onmousedown="handleEquationButton('|', event)">|</button>
+                <button type="button" tabindex="-1" onmousedown="handleEquationButton('U', event)">U</button>
+                <button type="button" tabindex="-1" onmousedown="handleEquationButton('∩', event)">∩</button>
+                <button type="button" tabindex="-1" onmousedown="handleEquationButton('^c', event)">^c</button>
+                <button type="button" tabindex="-1" onmousedown="handleEquationButton('A', event)">A</button>
+                <button type="button" tabindex="-1" onmousedown="handleEquationButton('B', event)">B</button>
+                <button type="button" tabindex="-1" onmousedown="handleEquationButton('C', event)">C</button>
+              </div>
+              
             </div>
           
             <div class="button-group">
