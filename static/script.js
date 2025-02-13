@@ -48,21 +48,31 @@ document.addEventListener("DOMContentLoaded", function() {
 
     // Insert text at the current caret (restores saved selection first)
     function insertTextAtCursor(text) {
+        const eqInput = document.getElementById("equation-input");
+        // Calculate how many characters we can still insert.
+        const remaining = maxChars - eqInput.textContent.length;
+        if (remaining <= 0) {
+          return; // Hard cap reached; do nothing.
+        }
+        // If the new text is longer than allowed, trim it.
+        const textToInsert = text.substring(0, remaining);
+      
         restoreSelection();
         const sel = window.getSelection();
         if (sel.rangeCount) {
-            let range = sel.getRangeAt(0);
-            range.deleteContents();
-            const textNode = document.createTextNode(text);
-            range.insertNode(textNode);
-            // Move the caret immediately after the inserted text
-            range.setStartAfter(textNode);
-            range.collapse(true);
-            sel.removeAllRanges();
-            sel.addRange(range);
-            savedRange = range; // update savedRange
+          let range = sel.getRangeAt(0);
+          range.deleteContents();
+          const textNode = document.createTextNode(textToInsert);
+          range.insertNode(textNode);
+          // Move caret after inserted text.
+          range.setStartAfter(textNode);
+          range.collapse(true);
+          sel.removeAllRanges();
+          sel.addRange(range);
+          savedRange = range; // update savedRange
         }
-    }
+      }
+      
     // Ensure handleEquationButton is attached to the global window:
 window.handleEquationButton = function(value, event) {
     event.preventDefault();  // Prevent focus from being stolen
